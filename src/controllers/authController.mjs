@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 import User from "../models/User.mjs"; // Adjust path based on your project
-import admin from "../config/firebaseAdmin.mjs"; //firebase
+//import admin from "../config/firebaseAdmin.mjs"; //firebase
 
 
 dotenv.config();
@@ -123,46 +123,46 @@ export const verifyEmailOTP = async (req, res) => {
     }
 };
 //  Send Phone OTP via Firebase
-export const sendPhoneOTP = async (req, res) => {
-    try {
-        const { phoneNumber } = req.body;
+// export const sendPhoneOTP = async (req, res) => {
+//     try {
+//         const { phoneNumber } = req.body;
 
-        if (!phoneNumber) {
-            return res.status(400).json({ message: " Phone number is required." });
-        }
+//         if (!phoneNumber) {
+//             return res.status(400).json({ message: " Phone number is required." });
+//         }
 
-        // Firebase sends OTP automatically via frontend SDK
-        res.json({ message: " Request received. OTP will be sent by Firebase." });
-    } catch (err) {
-        res.status(500).json({ message: " Error processing OTP request." });
-    }
-};
+//         // Firebase sends OTP automatically via frontend SDK
+//         res.json({ message: " Request received. OTP will be sent by Firebase." });
+//     } catch (err) {
+//         res.status(500).json({ message: " Error processing OTP request." });
+//     }
+// };
 
-//  Verify Phone OTP & Login (Firebase)
-export const verifyPhoneOTP = async (req, res) => {
-    try {
-        const { idToken } = req.body;
+// //  Verify Phone OTP & Login (Firebase)
+// export const verifyPhoneOTP = async (req, res) => {
+//     try {
+//         const { idToken } = req.body;
 
-        // Verify OTP Token from Firebase
-        const decodedToken = await admin.auth().verifyIdToken(idToken);
-        const phoneNumber = decodedToken.phone_number;
+//         // Verify OTP Token from Firebase
+//         const decodedToken = await admin.auth().verifyIdToken(idToken);
+//         const phoneNumber = decodedToken.phone_number;
 
-        if (!phoneNumber) {
-            return res.status(400).json({ message: " Invalid OTP or Phone Number" });
-        }
+//         if (!phoneNumber) {
+//             return res.status(400).json({ message: " Invalid OTP or Phone Number" });
+//         }
 
-        // Find or Create User
-        let user = await User.findOne({ phoneNumber });
-        if (!user) {
-            user = new User({ phoneNumber, role: "user" });
-            await user.save();
-        }
+//         // Find or Create User
+//         let user = await User.findOne({ phoneNumber });
+//         if (!user) {
+//             user = new User({ phoneNumber, role: "user" });
+//             await user.save();
+//         }
 
         // Generate JWT Token
-        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    //     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-        res.json({ message: " OTP Verified Successfully", token, role: user.role });
-    } catch (err) {
-        res.status(401).json({ message: " Invalid OTP", error: err.message });
-    }
-};
+    //     res.json({ message: " OTP Verified Successfully", token, role: user.role });
+    // } catch (err) {
+    //     res.status(401).json({ message: " Invalid OTP", error: err.message });
+    // }
+//};
