@@ -12,8 +12,12 @@ dotenv.config();
 const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
+    //   user: process.env.EMAIL_USER,
+    //   pass: process.env.EMAIL_PASS,
+
+      user: "bhoyarriddhi@gmail.com",
+      pass: "coiu jcpl zkbs qvwg",
+
     },
   });
   
@@ -78,27 +82,28 @@ export const signUp = async (req, res) => {
 export const sendEmailOTP = async (req, res) => {
     try {
         const { email } = req.body;
+        if (!email) return res.status(400).json({ message: "Email is required" });
+       
         const user = await User.findOne({ email });
         if (!user) return res.status(400).json({ message: " User not found" });
 
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         await storeOTP(email, otp);
 
-        const transporter = nodemailer.createTransport({
-            service: "gmail",
-            auth: { user: process.env.EMAIL_USER },
-        });
 
         await transporter.sendMail({
-            from: process.env.EMAIL_USER,
+            //from: process.env.EMAIL_USER,
+            from:"bhoyarriddhi@gmail.com",
             to: email,
             subject: "Your OTP",
             text: `Your OTP is: ${otp}. It expires in 5 minutes.`,
         });
 
-        res.json({ message: " OTP sent to email" });
+        res.status(200).json({ message: " OTP sent to email" });
     } catch (err) {
+        console.log(err);
         res.status(500).json({ message: " Error sending OTP" });
+        
     }
 };
 
