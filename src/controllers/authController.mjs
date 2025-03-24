@@ -1,4 +1,4 @@
-import redisConfig from "../config/redisConfig.mjs"; // Import Redis client
+import redisClient from "../config/redisConfig.mjs"; // Import Redis client
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
@@ -29,7 +29,8 @@ const adminPhones = ["+917066630541"]; // Add real admin phone numbers
 //  Helper functions to interact with Redis securely
 const storeOTP = async (key, otp) => {
     try {
-        await redisClient.setEx(`otp:${key}`, 300, otp); // 5 min expiry
+        const result = await redisClient.setEx(`otp:${key}`, 300, otp); // 5 min expiry
+        console.log(`✅ OTP stored for ${key}: ${otp}, Redis Response: ${result}`);
     } catch (err) {
         console.error(" Redis Store OTP Error:", err);
     }
@@ -47,10 +48,12 @@ const getOTP = async (key) => {
 const deleteOTP = async (key) => {
     try {
         await redisClient.del(`otp:${key}`);
+        console.log(`🗑️ Deleted OTP for ${key}`);
     } catch (err) {
         console.error(" Redis Delete OTP Error:", err);
     }
 };
+
 
 //  Sign-Up (Full Name & Email)
 export const signUp = async (req, res) => {
@@ -113,16 +116,17 @@ export const verifyEmailOTP = async (req, res) => {
         const { email, otp } = req.body;
         const storedOTP = await getOTP(email);
 
-        if (!storedOTP || storedOTP !== otp)
+        // if (!storedOTP || storedOTP !== otp)
+        if (!storedOTP || storedOTP.toString() !== otp.toString())
             return res.status(400).json({ message: " Invalid or expired OTP" });
-
+        
         const user = await User.findOne({ email });
         if (!user) return res.status(404).json({ message: " User not found" });
 
         const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
         await deleteOTP(email);
-        res.json({ token, role: user.role });
+        res.json({ message: "✅ OTP verified successfully!", token, role: user.role });
     } catch (err) {
         res.status(500).json({ message: " Server error" });
     }
