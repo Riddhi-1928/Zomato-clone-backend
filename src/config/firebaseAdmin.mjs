@@ -1,5 +1,6 @@
 import admin from "firebase-admin";
 import dotenv from "dotenv";
+import { readFileSync } from "fs";
 
 dotenv.config();
 

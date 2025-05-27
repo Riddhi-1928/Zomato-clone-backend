@@ -3,8 +3,7 @@ import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 import User from "../models/User.mjs"; // Adjust path based on your project
-//import admin from "../config/firebaseAdmin.mjs"; //firebase
-
+import admin from "../config/firebaseAdmin.mjs"; //firebase
 
 dotenv.config();
 
@@ -12,16 +11,16 @@ dotenv.config();
 const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
-    //   user: process.env.EMAIL_USER,
-    //   pass: process.env.EMAIL_PASS,
+        //   user: process.env.EMAIL_USER,
+        //   pass: process.env.EMAIL_PASS,
 
-      user: "bhoyarriddhi@gmail.com",
-      pass: "coiu jcpl zkbs qvwg",
+        user: "bhoyarriddhi@gmail.com",
+        pass: "coiu jcpl zkbs qvwg",
 
     },
-  });
-  
- 
+});
+
+
 //  Predefined Admin Emails & Phone Numbers
 const adminEmails = ["bhoyarriddhi@gmail.com"]; // Add real admin emails
 const adminPhones = ["+917066630541"]; // Add real admin phone numbers
@@ -86,7 +85,7 @@ export const sendEmailOTP = async (req, res) => {
     try {
         const { email } = req.body;
         if (!email) return res.status(400).json({ message: "Email is required" });
-       
+
         const user = await User.findOne({ email });
         if (!user) return res.status(400).json({ message: " User not found" });
 
@@ -96,7 +95,7 @@ export const sendEmailOTP = async (req, res) => {
 
         await transporter.sendMail({
             //from: process.env.EMAIL_USER,
-            from:"bhoyarriddhi@gmail.com",
+            from: "bhoyarriddhi@gmail.com",
             to: email,
             subject: "Your OTP",
             text: `Your OTP is: ${otp}. It expires in 5 minutes.`,
@@ -106,7 +105,7 @@ export const sendEmailOTP = async (req, res) => {
     } catch (err) {
         console.log(err);
         res.status(500).json({ message: " Error sending OTP" });
-        
+
     }
 };
 
@@ -119,59 +118,73 @@ export const verifyEmailOTP = async (req, res) => {
         // if (!storedOTP || storedOTP !== otp)
         if (!storedOTP || storedOTP.toString() !== otp.toString())
             return res.status(400).json({ message: " Invalid or expired OTP" });
-        
+
         const user = await User.findOne({ email });
         if (!user) return res.status(404).json({ message: " User not found" });
 
-        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "24h" });
 
         await deleteOTP(email);
-        res.json({ message: "✅ OTP verified successfully!", token, role: user.role });
+
+        res.json({ message: " OTP verified successfully!", token, role: user.role, id: user._id});
     } catch (err) {
         res.status(500).json({ message: " Server error" });
     }
 };
 //  Send Phone OTP via Firebase
-// export const sendPhoneOTP = async (req, res) => {
-//     try {
-//         const { phoneNumber } = req.body;
+export const sendPhoneOTP = async (req, res) => {
+    try {
 
-//         if (!phoneNumber) {
-//             return res.status(400).json({ message: " Phone number is required." });
-//         }
+        const { phoneNumber } = req.body;
+        console.log(phoneNumber);
 
-//         // Firebase sends OTP automatically via frontend SDK
-//         res.json({ message: " Request received. OTP will be sent by Firebase." });
-//     } catch (err) {
-//         res.status(500).json({ message: " Error processing OTP request." });
-//     }
-// };
+        if (!phoneNumber) {
+            return res.status(400).json({ message: " Phone number is required." });
+        }
+        const userRecord = await admin.auth().getUserByPhoneNumber(phoneNumber);
+        res.status(200).json({
+            message: "OTP has been sent. Please enter the OTP to verify.",
+            user: userRecord,
+        });
 
-// //  Verify Phone OTP & Login (Firebase)
-// export const verifyPhoneOTP = async (req, res) => {
-//     try {
-//         const { idToken } = req.body;
+        // Firebase sends OTP automatically via frontend SDK
+        // res.json({ message: " Request received. OTP will be sent by Firebase." });
+    } catch (err) {
+        res.status(500).json({ message: " Error processing OTP request." });
+    }
+};
 
-//         // Verify OTP Token from Firebase
-//         const decodedToken = await admin.auth().verifyIdToken(idToken);
-//         const phoneNumber = decodedToken.phone_number;
+//  Verify Phone OTP & Login (Firebase)
+export const verifyPhoneOTP = async (req, res) => {
+    try {
+        console.log("Request Body:", req.body); // Debugging log
+        const { idToken } = req.body;
 
-//         if (!phoneNumber) {
-//             return res.status(400).json({ message: " Invalid OTP or Phone Number" });
-//         }
 
-//         // Find or Create User
-//         let user = await User.findOne({ phoneNumber });
-//         if (!user) {
-//             user = new User({ phoneNumber, role: "user" });
-//             await user.save();
-//         }
+        if (!idToken) {
+            return res.status(400).json({ message: "Missing ID token." });
+        }
+
+        // Verify OTP Token from Firebase
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        const phoneNumber = decodedToken.phone_number;
+
+        if (!phoneNumber) {
+            return res.status(400).json({ message: " Invalid OTP or Phone Number" });
+        }
+
+        // Find or Create User
+        let user = await User.findOne({ phoneNumber });
+        if (!user) {
+            user = new User({ phoneNumber, role: "user" });
+            await user.save();
+        }
 
         // Generate JWT Token
-    //     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "24h" });
 
-    //     res.json({ message: " OTP Verified Successfully", token, role: user.role });
-    // } catch (err) {
-    //     res.status(401).json({ message: " Invalid OTP", error: err.message });
-    // }
-//};
+        res.json({ message: " OTP Verified Successfully", token, role: user.role });
+    } catch (err) {
+        res.status(401).json({ message: " Invalid OTP", error: err.message });
+    }
+};
