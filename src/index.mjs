@@ -24,6 +24,10 @@ const __dirname = path.dirname(__filename);
 app.use(express.json());
 // app.use(cors());
 
+
+// ✅ This handles preflight requests
+app.options('*', cors());
+
 app.use(cors({
   origin: [
     'https://zomato-clone-deployment.vercel.app',
@@ -34,8 +38,6 @@ app.use(cors({
   credentials: true,
 }));
 
-// ✅ This handles preflight requests
-app.options('*', cors());
 
 
 // Connect to MongoDB
