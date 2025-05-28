@@ -22,30 +22,8 @@ const __dirname = path.dirname(__filename);
 
 
 app.use(express.json());
-// app.use(cors());
+ app.use(cors());
 
-const allowedOrigins = [
-  'https://zomato-clone-deployment.vercel.app',
-  'https://zomato-clone-deployment-qvr8o3ads-riddhi-bhoyars-projects.vercel.app'
-];
-
-const corsOptions = {
-  origin: function (origin, callback) {
-    // allow requests with no origin like mobile apps or curl
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-};
-
-// ✅ Apply same options for both middleware & preflight
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
 
 
 
