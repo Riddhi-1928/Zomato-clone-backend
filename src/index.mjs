@@ -22,7 +22,16 @@ const __dirname = path.dirname(__filename);
 
 
 app.use(express.json());
-app.use(cors());
+// app.use(cors());
+
+app.use(cors({
+  origin: 'https://zomato-clone-deployment-qvr8o3ads-riddhi-bhoyars-projects.vercel.app',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+}));
+
+
 
 // Connect to MongoDB
 mongoose
