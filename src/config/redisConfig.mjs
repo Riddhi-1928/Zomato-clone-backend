@@ -9,7 +9,7 @@ const redisClient = createClient({
   socket: {
     host: process.env.REDIS_HOST,
     port: process.env.REDIS_PORT,
-     ...(isProduction && { tls: true }), // Use TLS only in production
+    //  ...(isProduction && { tls: true }), // Use TLS only in production
   },
    ...(isProduction && { password: process.env.REDIS_PASSWORD }), // Use password only in production
 
